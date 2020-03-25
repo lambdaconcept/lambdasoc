@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+/*.egg-info
+/.eggs
+
+# coverage
+/.coverage
+/htmlcov
+
+# tests
+*.vcd
+*.gtkw
+
+# misc user-created
+*.il
+*.v
+/build
