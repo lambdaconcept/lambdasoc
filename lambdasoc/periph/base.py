@@ -7,7 +7,7 @@ from nmigen_soc.memory import MemoryMap
 from nmigen_soc.csr.wishbone import WishboneCSRBridge
 
 
-from ._event import *
+from .event import *
 
 
 __all__ = ["Peripheral", "CSRBank", "PeripheralBridge"]

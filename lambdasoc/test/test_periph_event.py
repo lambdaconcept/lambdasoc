@@ -4,7 +4,7 @@ import unittest
 from nmigen import *
 from nmigen.back.pysim import *
 
-from ..periph._event import *
+from ..periph.event import *
 
 
 def simulation_test(dut, process):
