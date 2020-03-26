@@ -1,0 +1,3 @@
+[submodule "lambdasoc/software/bios"]
+	path = lambdasoc/software/bios
+	url = git@github.com:lambdaconcept/lambdasoc-bios
