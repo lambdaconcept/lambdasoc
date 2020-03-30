@@ -32,9 +32,10 @@ setup(
         ]
     },
     extras_require={
-        "SFL": ["asyncserial @ git+https://github.com/m-labs/asyncserial@master"]
+        "SFL": ["asyncserial"]
     },
     packages=find_packages(),
+    include_package_data=True,
     project_urls={
         "Source Code": "https://github.com/lambdaconcept/lambdasoc",
         "Bug Tracker": "https://github.com/lambdaconcept/lambdasoc/issues",
