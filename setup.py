@@ -23,7 +23,17 @@ setup(
     #long_description="""TODO""",
     license="BSD",
     setup_requires=["setuptools_scm"],
-    install_requires=["nmigen>=0.1"],
+    install_requires=[
+        "nmigen>=0.1,<0.3",
+    ],
+    entry_points={
+        "console_scripts": [
+            "flterm=lambdasoc.tools.flterm:main [SFL]",
+        ]
+    },
+    extras_require={
+        "SFL": ["asyncserial @ git+https://github.com/m-labs/asyncserial@master"]
+    },
     packages=find_packages(),
     project_urls={
         "Source Code": "https://github.com/lambdaconcept/lambdasoc",
