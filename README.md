@@ -6,6 +6,7 @@
 
 ```
 git clone https://github.com/lambdaconcept/lambdasoc
+cd lambdasoc
 git submodule update --init --recursive
 
 pip install -r requirements.txt
