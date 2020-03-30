@@ -8,12 +8,7 @@
 git clone https://github.com/lambdaconcept/lambdasoc
 git submodule update --init --recursive
 
-pip install git+https://github.com/nmigen/nmigen-soc
-pip install git+https://github.com/nmigen/nmigen-stdio
-pip install git+https://github.com/nmigen/nmigen-boards
-pip install git+https://github.com/lambdaconcept/minerva
-pip install git+https://github.com/m-labs/asyncserial
-
+pip install -r requirements.txt
 python setup.py install
 ```
 
