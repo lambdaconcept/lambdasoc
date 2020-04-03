@@ -62,10 +62,10 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
     irq : :class:`IRQLine`
         Interrupt request line.
     """
-    def __init__(self, *, rx_depth=16, tx_depth=16, **kwargs):
+    def __init__(self, *, rx_depth=16, tx_depth=16, phy=None, **kwargs):
         super().__init__()
 
-        self._phy       = AsyncSerial(**kwargs)
+        self._phy       = phy or AsyncSerial(**kwargs)
         self._rx_fifo   = SyncFIFO(width=self._phy.rx.data.width, depth=rx_depth)
         self._tx_fifo   = SyncFIFO(width=self._phy.tx.data.width, depth=tx_depth)
 
