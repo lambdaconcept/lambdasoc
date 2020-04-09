@@ -1,12 +1,66 @@
 from nmigen import *
 from nmigen.lib.fifo import SyncFIFO
+from nmigen.utils import bits_for
 
 from nmigen_stdio.serial import AsyncSerial
 
 from . import Peripheral
 
 
-__all__ = ["AsyncSerialPeripheral"]
+__all__ = ["AsyncSerialModel", "AsyncSerialPeripheral"]
+
+
+class AsyncSerialModel(Elaboratable):
+    class RX:
+        def __init__(self, *, divisor, divisor_bits=None, data_bits=8, parity="none", pins=None):
+            self.divisor = Signal(divisor_bits or bits_for(divisor))
+            self.data = Signal(data_bits)
+            self.err  = Record([
+                ("overflow", 1),
+                ("frame",    1),
+                ("parity",   1),
+            ])
+            self.rdy  = Signal()
+            self.ack  = Signal()
+
+    class TX:
+        def __init__(self, *, divisor, divisor_bits=None, data_bits=8, parity="none", pins=None):
+            self.divisor = Signal(divisor_bits or bits_for(divisor))
+            self.data = Signal(data_bits)
+            self.rdy  = Signal()
+            self.ack  = Signal()
+
+    def __init__(self, *, divisor, divisor_bits=None, **kwargs):
+        self.divisor = Signal(divisor_bits or bits_for(divisor), reset=divisor)
+
+        self.rx = AsyncSerialModel.RX(divisor=divisor, divisor_bits=divisor_bits, **kwargs)
+        self.tx = AsyncSerialModel.TX(divisor=divisor, divisor_bits=divisor_bits, **kwargs)
+
+    def elaborate(self, platform):
+        m = Module()
+        m.d.comb += [
+            self.rx.divisor.eq(self.divisor),
+            self.tx.divisor.eq(self.divisor),
+        ]
+
+        # TODO
+        # m.submodules += Instance("uart_phy",
+        #     p_divisor_width=len(self.divisor),
+        #     i_divisor=self.divisor,
+
+        #     o_rx_data=self.rx.data,
+        #     o_rx_err_overflow=self.rx.err.overflow,
+        #     o_rx_err_frame=self.rx.err.frame,
+        #     o_rx_err_parity=self.rx.err.parity,
+        #     o_rx_rdy=self.rx.rdy,
+        #     i_rx_ack=self.rx.ack,
+
+        #     i_tx_data=self.tx.data,
+        #     o_tx_rdy=self.tx.rdy,
+        #     i_tx_ack=self.tx.ack,
+        # )
+
+        return m
 
 
 class AsyncSerialPeripheral(Peripheral, Elaboratable):
@@ -62,10 +116,10 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
     irq : :class:`IRQLine`
         Interrupt request line.
     """
-    def __init__(self, *, rx_depth=16, tx_depth=16, phy=None, **kwargs):
+    def __init__(self, *, rx_depth=16, tx_depth=16, model=False, **kwargs):
         super().__init__()
 
-        self._phy       = phy or AsyncSerial(**kwargs)
+        self._phy       = AsyncSerialModel(**kwargs) if model else AsyncSerial(**kwargs)
         self._rx_fifo   = SyncFIFO(width=self._phy.rx.data.width, depth=rx_depth)
         self._tx_fifo   = SyncFIFO(width=self._phy.tx.data.width, depth=tx_depth)
 

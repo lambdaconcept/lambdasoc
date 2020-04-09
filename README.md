@@ -23,7 +23,7 @@ Let's build and run the SoC example at [examples/sram_soc.py][sram_soc]. It is c
 
 Here, we build the SoC for the `nmigen_boards.arty_a7.ArtyA7Platform`:
 ```
-python examples/sram_soc.py --baudrate=9600 nmigen_boards.arty_a7.ArtyA7Platform
+python examples/sram_soc.py --baudrate=9600 --platform=nmigen_boards.arty_a7.ArtyA7Platform
 ```
 
 The bootloader shell can be accessed from the serial port:

@@ -2,6 +2,7 @@ import argparse
 import importlib
 
 from nmigen import *
+from nmigen.back import rtlil
 from nmigen_soc import wishbone
 
 from lambdasoc.cpu.minerva import MinervaCPU
@@ -19,7 +20,7 @@ class SRAMSoC(CPUSoC, Elaboratable):
     def __init__(self, *, reset_addr, clk_freq,
                  rom_addr, rom_size,
                  ram_addr, ram_size,
-                 uart_addr, uart_divisor, uart_pins,
+                 uart_addr, uart_divisor, uart_pins, uart_model,
                  timer_addr, timer_width):
         self._arbiter = wishbone.Arbiter(addr_width=30, data_width=32, granularity=8,
                                          features={"cti", "bte"})
@@ -36,7 +37,7 @@ class SRAMSoC(CPUSoC, Elaboratable):
         self.ram = SRAMPeripheral(size=ram_size)
         self._decoder.add(self.ram.bus, addr=ram_addr)
 
-        self.uart = AsyncSerialPeripheral(divisor=uart_divisor, pins=uart_pins)
+        self.uart = AsyncSerialPeripheral(divisor=uart_divisor, pins=uart_pins, model=uart_model)
         self._decoder.add(self.uart.bus, addr=uart_addr)
 
         self.timer = TimerPeripheral(width=timer_width)
@@ -73,33 +74,50 @@ class SRAMSoC(CPUSoC, Elaboratable):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
-    parser.add_argument("platform", type=str,
+    parser.add_argument("--platform", type=str,
             help="target platform (e.g. 'nmigen_boards.arty_a7.ArtyA7Platform')")
     parser.add_argument("--baudrate", type=int,
             default=9600,
             help="UART baudrate (default: 9600)")
-
     args = parser.parse_args()
 
-    def get_platform(platform_name):
-        module_name, class_name = platform_name.rsplit(".", 1)
-        module = importlib.import_module(name=module_name)
-        platform_class = getattr(module, class_name)
-        return platform_class()
+    if args.platform is not None:
+        def get_platform(platform_name):
+            module_name, class_name = platform_name.rsplit(".", 1)
+            module = importlib.import_module(name=module_name)
+            platform_class = getattr(module, class_name)
+            return platform_class()
 
-    platform = get_platform(args.platform)
-
-    uart_divisor = int(platform.default_clk_frequency // args.baudrate)
-    uart_pins = platform.request("uart", 0)
+        platform   = get_platform(args.platform)
+        clk_freq   = int(platform.default_clk_frequency)
+        uart_pins  = platform.request("uart", 0)
+        uart_model = False
+    else:
+        platform   = None
+        clk_freq   = int(1e6)
+        uart_pins  = None
+        uart_model = True
 
     soc = SRAMSoC(
-         reset_addr=0x00000000, clk_freq=int(platform.default_clk_frequency),
+         reset_addr=0x00000000, clk_freq=clk_freq,
            rom_addr=0x00000000, rom_size=0x4000,
            ram_addr=0x00004000, ram_size=0x1000,
-          uart_addr=0x00005000, uart_divisor=uart_divisor, uart_pins=uart_pins,
+          uart_addr=0x00005000, uart_divisor=int(clk_freq // args.baudrate),
+                                uart_pins=uart_pins, uart_model=uart_model,
          timer_addr=0x00006000, timer_width=32,
     )
 
     soc.build(do_build=True, do_init=True)
-    platform.build(soc, do_program=True)
+
+    if platform is not None:
+        platform.build(soc, do_program=True)
+    else:
+        # Build with the write_cxxrtl Yosys backend:
+        # python sram_soc.py > sram_soc.il
+        # yosys sram_soc.il -o sram_soc.cc
+        # clang++ -I/usr/local/share/yosys/include/backends/cxxrtl -luv -O2 sram_soc_driver.cc -o sram_soc_driver
+        ports = [
+            soc.uart._phy.rx.data, soc.uart._phy.rx.ack, soc.uart._phy.rx.rdy,
+            soc.uart._phy.tx.data, soc.uart._phy.tx.ack, soc.uart._phy.tx.rdy,
+        ]
+        print(rtlil.convert(soc, ports=ports))
