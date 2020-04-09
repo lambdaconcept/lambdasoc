@@ -73,7 +73,7 @@ class BIOSBuilder(ConfigBuilder):
         r"""
             build={{build_dir}}
             KCONFIG_CONFIG={{build_dir}}/{{name}}.config
-            make -C {{software_dir}}/bios
+            make -C {{software_dir}}/bios 1>&2
         """,
     ]
 
