@@ -253,6 +253,8 @@ class CSRBank:
         name = name or tracer.get_var_name(depth=2 + src_loc_at).lstrip("_")
 
         elem_name = "{}_{}".format(self._name_prefix, name)
+        if any(elem.name == elem_name for (elem, _, _) in self._csr_regs):
+            raise Exception("CSR \"{}\" has already been defined".format(elem_name))
         elem = csr.Element(width, access, name=elem_name)
         self._csr_regs.append((elem, addr, alignment))
         return elem
