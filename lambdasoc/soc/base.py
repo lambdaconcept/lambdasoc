@@ -39,8 +39,8 @@ def socproperty(cls, src_loc_at=0):
 class SoC:
     memory_map = socproperty(MemoryMap)
 
-    def build(self, build_dir="build/soc", do_build=True):
-        plan = ConfigBuilder.prepare(self)
+    def build(self, build_dir="build/soc", do_build=True, name=None):
+        plan = ConfigBuilder().prepare(self, build_dir, name)
         if not do_build:
             return plan
 
