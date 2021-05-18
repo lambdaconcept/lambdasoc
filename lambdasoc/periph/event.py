@@ -127,8 +127,11 @@ class InterruptSource(Elaboratable):
             else:
                 assert False # :nocov:
 
-            with m.If(event_trigger):
-                m.d.sync += self.pending.r_data[i].eq(1)
+            if event.mode == "level":
+                m.d.sync += self.pending.r_data[i].eq(event_trigger)
+            else:
+                with m.If(event_trigger):
+                    m.d.sync += self.pending.r_data[i].eq(1)
 
         m.d.comb += self.irq.eq((self.pending.r_data & self.enable.r_data).any())
 
