@@ -313,7 +313,7 @@ class PeripheralBridge(Elaboratable):
         for bank, bank_addr, bank_alignment in periph.iter_csr_banks():
             if bank_alignment is None:
                 bank_alignment = alignment
-            csr_mux = csr.Multiplexer(addr_width=1, data_width=8, alignment=bank_alignment)
+            csr_mux = csr.Multiplexer(addr_width=1, data_width=granularity, alignment=bank_alignment)
             for elem, elem_addr, elem_alignment in bank.iter_csr_regs():
                 if elem_alignment is None:
                     elem_alignment = alignment
