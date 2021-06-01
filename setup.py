@@ -35,6 +35,7 @@ setup(
         "SFL": ["asyncserial"]
     },
     packages=find_packages(),
+    zip_safe=False, # install package as a directory. needed to build the SoC firmware.
     include_package_data=True,
     project_urls={
         "Source Code": "https://github.com/lambdaconcept/lambdasoc",
