@@ -1,3 +1,4 @@
+git+https://github.com/nmigen/nmigen
 git+https://github.com/nmigen/nmigen-soc
 git+https://github.com/nmigen/nmigen-stdio
 git+https://github.com/nmigen/nmigen-boards
