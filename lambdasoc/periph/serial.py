@@ -1,5 +1,5 @@
 from nmigen import *
-from nmigen.lib.fifo import SyncFIFO
+from nmigen.lib.fifo import SyncFIFOBuffered
 
 from nmigen_stdio.serial import AsyncSerial
 
@@ -65,9 +65,9 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
     def __init__(self, *, rx_depth=16, tx_depth=16, **kwargs):
         super().__init__()
 
-        self._phy       = AsyncSerial(**kwargs)
-        self._rx_fifo   = SyncFIFO(width=self._phy.rx.data.width, depth=rx_depth)
-        self._tx_fifo   = SyncFIFO(width=self._phy.tx.data.width, depth=tx_depth)
+        self._phy       = AsyncSerial(data_bits=data_bits, **kwargs)
+        self._rx_fifo   = SyncFIFOBuffered(width=self._phy.rx.data.width, depth=rx_depth)
+        self._tx_fifo   = SyncFIFOBuffered(width=self._phy.tx.data.width, depth=tx_depth)
 
         bank            = self.csr_bank()
         self._divisor   = bank.csr(self._phy.divisor.width, "rw")
