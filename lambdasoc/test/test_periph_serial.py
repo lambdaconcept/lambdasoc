@@ -51,7 +51,8 @@ class AsyncSerialPeripheralTestCase(unittest.TestCase):
             self.assertEqual(rx_data, 0xab)
             yield
 
-        with Simulator(m, vcd_file=open("test.vcd", "w")) as sim:
-            sim.add_clock(1e-6)
-            sim.add_sync_process(process)
+        sim = Simulator(m)
+        sim.add_clock(1e-6)
+        sim.add_sync_process(process)
+        with sim.write_vcd("test.vcd"):
             sim.run()

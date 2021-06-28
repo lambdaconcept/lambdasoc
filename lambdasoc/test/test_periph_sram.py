@@ -13,9 +13,10 @@ from ..periph.sram import SRAMPeripheral
 
 
 def simulation_test(dut, process):
-    with Simulator(dut, vcd_file=open("test.vcd", "w")) as sim:
-        sim.add_clock(1e-6)
-        sim.add_sync_process(process)
+    sim = Simulator(dut)
+    sim.add_clock(1e-6)
+    sim.add_sync_process(process)
+    with sim.write_vcd("test.vcd"):
         sim.run()
 
 
