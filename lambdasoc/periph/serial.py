@@ -14,6 +14,13 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
 
     See :class:`nmigen_stdio.serial.AsyncSerial` for details.
 
+    Notes
+    -----
+
+    * If this peripheral is used with the LambdaSoC BIOS, `rx_depth * data_bits` should be at least
+    256 bytes in order to buffer a complete SFL frame. Otherwise, a race condition may occur during
+    a serialboot at high baudrates.
+
     CSR registers
     -------------
     divisor : read/write
@@ -62,7 +69,7 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
     irq : :class:`IRQLine`
         Interrupt request line.
     """
-    def __init__(self, *, rx_depth=16, tx_depth=16, **kwargs):
+    def __init__(self, *, rx_depth=256, tx_depth=16, data_bits=8, **kwargs):
         super().__init__()
 
         self._phy       = AsyncSerial(data_bits=data_bits, **kwargs)
