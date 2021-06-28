@@ -40,7 +40,7 @@ class AsyncSerialPeripheralTestCase(unittest.TestCase):
             yield from wb_write(dut.bus, addr=tx_data_addr, data=0xab, sel=0xf)
             yield
 
-            for i in range(10):
+            for i in range(61):
                 yield
             self.assertTrue((yield dut.irq))
 
