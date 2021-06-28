@@ -14,14 +14,14 @@ from ..periph import Peripheral
 __all__ = ["socproperty", "SoC", "ConfigBuilder"]
 
 
-def socproperty(cls, src_loc_at=0):
+def socproperty(cls, *, weak=False, src_loc_at=0):
     name   = tracer.get_var_name(depth=2 + src_loc_at)
     __name = "__{}".format(name)
 
     def getter(self):
         assert isinstance(self, SoC)
         attr = getattr(self, __name, None)
-        if attr is None:
+        if attr is None and not weak:
             raise NotImplementedError("SoC {!r} does not have a {}"
                                       .format(self, name))
         return attr
