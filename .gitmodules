@@ -1,3 +1,4 @@
 [submodule "lambdasoc/software/bios"]
 	path = lambdasoc/software/bios
 	url = https://github.com/lambdaconcept/lambdasoc-bios
+	branch = sdram-staging
