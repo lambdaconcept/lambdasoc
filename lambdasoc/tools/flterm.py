@@ -10,6 +10,7 @@ import asyncio
 import asyncserial
 import serial
 import argparse
+import traceback
 
 
 if sys.platform == "win32":
@@ -134,10 +135,15 @@ class Flterm:
         self.output_only = output_only
 
         self.port = asyncserial.AsyncSerial(port, baudrate=speed)
-        if serial.__version__[0] == "2":
-            self.port.ser.setRTS(False)
-        else:
-            self.port.ser.rts = False
+        try:
+            if serial.__version__[0] == "2":
+                self.port.ser.setRTS(False)
+            else:
+                self.port.ser.rts = False
+        except OSError:
+            # FIXME: The TIOCMBIC ioctl failed. This port is probably a pseudo TTY.
+            traceback.print_exc()
+            print("[FLTERM] Failed to clear RTS bit. Continuing anyway...")
 
     def init(self):
         if not (self.upload_only or self.output_only):
