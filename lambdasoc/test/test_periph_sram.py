@@ -8,7 +8,7 @@ from nmigen.back.pysim import *
 
 from nmigen_soc.wishbone import CycleType, BurstTypeExt
 
-from ._wishbone import *
+from .utils.wishbone import *
 from ..periph.sram import SRAMPeripheral
 
 

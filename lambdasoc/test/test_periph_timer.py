@@ -5,7 +5,7 @@ import unittest
 from nmigen import *
 from nmigen.back.pysim import *
 
-from ._wishbone import *
+from .utils.wishbone import *
 from ..periph.timer import TimerPeripheral
 
 

@@ -1,3 +1,11 @@
+from nmigen import *
+
+from nmigen_soc import wishbone
+
+
+__all__ = ["wb_read", "wb_write"]
+
+
 def wb_read(bus, addr, sel, timeout=32):
     yield bus.cyc.eq(1)
     yield bus.stb.eq(1)
@@ -14,6 +22,7 @@ def wb_read(bus, addr, sel, timeout=32):
     yield bus.cyc.eq(0)
     yield bus.stb.eq(0)
     return data
+
 
 def wb_write(bus, addr, data, sel, timeout=32):
     yield bus.cyc.eq(1)

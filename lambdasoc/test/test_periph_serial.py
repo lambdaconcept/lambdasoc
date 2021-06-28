@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.lib.io import pin_layout
 from nmigen.back.pysim import *
 
-from ._wishbone import *
+from .utils.wishbone import *
 from ..periph.serial import AsyncSerialPeripheral
 
 

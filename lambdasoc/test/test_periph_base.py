@@ -4,7 +4,7 @@ import unittest
 from nmigen import *
 from nmigen.back.pysim import *
 
-from ._wishbone import *
+from .utils.wishbone import *
 from ..periph.base import Peripheral, CSRBank, PeripheralBridge
 
 
