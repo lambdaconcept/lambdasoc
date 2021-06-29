@@ -140,10 +140,11 @@ if __name__ == "__main__":
         pins = litedram_cfg.request_pins(platform, "ddr3", 0),
     )
 
-    litedram_products = litedram_core.build(do_build=True)
-    with litedram_products.extract(f"{litedram_core.name}/{litedram_core.name}.v") as litedram_v:
-        with open(litedram_v, "r") as litedram_v_contents:
-            platform.add_file(litedram_v, litedram_v_contents)
+    litedram_builder  = litedram.Builder()
+    litedram_products = litedram_core.build(litedram_builder, do_build=True)
+
+    litedram_core_v = f"{litedram_core.name}/{litedram_core.name}.v"
+    platform.add_file(litedram_core_v, litedram_products.get(litedram_core_v, mode="t"))
 
     soc = SDRAMSoC(
          reset_addr=0x30000000, clk_freq=litedram_cfg.user_clk_freq,

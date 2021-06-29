@@ -414,12 +414,6 @@ class CoreTestCase(unittest.TestCase):
             init_clk_freq  = int(25e6),
         )
 
-    def setUp(self):
-        litedram.Core.clear_namespace()
-
-    def tearDown(self):
-        litedram.Core.clear_namespace()
-
     def test_simple(self):
         core = litedram.Core(self._cfg)
         self.assertIs(core.config, self._cfg)
@@ -452,10 +446,44 @@ class CoreTestCase(unittest.TestCase):
                 r"Name must be a string, not 42"):
             core = litedram.Core(self._cfg, name=42)
 
-    def test_wrong_name_collision(self):
-        core_1 = litedram.Core(self._cfg, name="core")
+
+class BuilderTestCase(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._cfg = litedram.ECP5Config(
+            memtype        = "DDR3",
+            module_name    = "MT41K256M16",
+            module_bytes   = 2,
+            module_ranks   = 1,
+            input_clk_freq = int(100e6),
+            user_clk_freq  = int(70e6),
+            init_clk_freq  = int(25e6),
+        )
+
+    def test_prepare(self):
+        core = litedram.Core(self._cfg)
+        builder = litedram.Builder()
+        builder.prepare(core)
+        self.assertEqual(list(builder.namespace), ["core"])
+
+    def test_prepare_name_conflict(self):
+        core = litedram.Core(self._cfg)
+        builder = litedram.Builder()
+        builder.prepare(core)
         with self.assertRaisesRegex(ValueError,
-                r"Name 'core' has already been used for a previous litedram\.Core instance\. "
-                r"Building this instance may overwrite previous build products. Passing "
-                r"`name_force=True` will disable this check."):
-            core_2 = litedram.Core(self._cfg, name="core")
+                r"LiteDRAM core name 'core' has already been used for a previous build\. Building "
+                r"this instance may overwrite previous build products\. Passing `name_force=True` "
+                r"will disable this check"):
+            builder.prepare(core)
+
+    def test_prepare_name_force(self):
+        core = litedram.Core(self._cfg)
+        builder = litedram.Builder()
+        builder.prepare(core)
+        builder.prepare(core, name_force=True)
+
+    def test_prepare_wrong_core(self):
+        builder = litedram.Builder()
+        with self.assertRaisesRegex(TypeError,
+                r"LiteDRAM core must be an instance of litedram.Core, not 'foo'"):
+            builder.prepare("foo")
