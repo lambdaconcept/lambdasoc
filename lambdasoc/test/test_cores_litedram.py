@@ -433,7 +433,8 @@ class CoreTestCase(unittest.TestCase):
     def test_ctrl_bus_not_ready(self):
         core = litedram.Core(self._cfg)
         with self.assertRaisesRegex(AttributeError,
-                r"Core.build\(do_build=True\) must be called before accessing Core\.ctrl_bus"):
+                r"Control bus memory map has not been populated. Core.build\(do_build=True\) must "
+                r"be called before accessing Core\.ctrl_bus"):
             core.ctrl_bus
 
     def test_wrong_config(self):

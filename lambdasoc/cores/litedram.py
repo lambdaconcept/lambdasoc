@@ -7,7 +7,7 @@ import textwrap
 
 from nmigen import *
 from nmigen import tracer
-from nmigen.build.run import BuildPlan
+from nmigen.build.run import BuildPlan, BuildProducts
 from nmigen.utils import log2_int
 
 from nmigen_soc import wishbone
@@ -457,9 +457,38 @@ class Core(Elaboratable):
         before :meth:`Core.build` is called with `do_build=True`).
         """
         if self._ctrl_bus is None:
-            raise AttributeError("Core.build(do_build=True) must be called before accessing "
+            raise AttributeError("Control bus memory map has not been populated. "
+                                 "Core.build(do_build=True) must be called before accessing "
                                  "Core.ctrl_bus")
         return self._ctrl_bus
+
+    def _populate_ctrl_map(self, build_products):
+        if not isinstance(build_products, BuildProducts):
+            raise TypeError("Build products must be an instance of BuildProducts, not {!r}"
+                            .format(build_products))
+
+        # LiteDRAM's Wishbone to CSR bridge has a granularity of 8 bits.
+        ctrl_map = MemoryMap(addr_width=1, data_width=8)
+
+        csr_csv = build_products.get(f"{self.name}_csr.csv", mode="t")
+        for row in csv.reader(csr_csv.split("\n"), delimiter=","):
+            if not row or row[0][0] == "#": continue
+            res_type, res_name, addr, size, attrs = row
+            if res_type == "csr_register":
+                ctrl_map.add_resource(
+                    res_name,
+                    addr   = int(addr, 16),
+                    size   = int(size, 10) * self.config.csr_data_width // ctrl_map.data_width,
+                    extend = True,
+                )
+
+        self._ctrl_bus = wishbone.Interface(
+            addr_width  = ctrl_map.addr_width
+                        - log2_int(self.config.csr_data_width // ctrl_map.data_width),
+            data_width  = self.config.csr_data_width,
+            granularity = ctrl_map.data_width,
+        )
+        self._ctrl_bus.memory_map = ctrl_map
 
     def build(self, builder, *, do_build=True, build_dir="build/litedram", sim=False,
             name_force=False):
@@ -493,32 +522,7 @@ class Core(Elaboratable):
             return plan
 
         products = plan.execute_local(build_dir)
-
-        # LiteDRAM's Wishbone to CSR bridge uses an 8-bit granularity.
-        ctrl_map = MemoryMap(addr_width=1, data_width=8)
-
-        with products.extract(f"{self.name}_csr.csv") as csr_csv_filename:
-            with open(csr_csv_filename, "r") as csr_csv:
-                for row in csv.reader(csr_csv, delimiter=","):
-                    if row[0][0] == "#": continue
-                    res_type, res_name, addr, size, attrs = row
-                    if res_type == "csr_register":
-                        ctrl_map.add_resource(
-                            res_name,
-                            addr   = int(addr, 16),
-                            size   = int(size, 10) *  self.config.csr_data_width
-                                                   // ctrl_map.data_width,
-                            extend = True,
-                        )
-
-        self._ctrl_bus = wishbone.Interface(
-            addr_width  = ctrl_map.addr_width
-                        - log2_int(self.config.csr_data_width // ctrl_map.data_width),
-            data_width  = self.config.csr_data_width,
-            granularity = ctrl_map.data_width,
-        )
-        self._ctrl_bus.memory_map = ctrl_map
-
+        self._populate_ctrl_map(products)
         return products
 
     def elaborate(self, platform):
