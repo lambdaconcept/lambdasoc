@@ -29,6 +29,10 @@ setup(
         "nmigen-stdio",
         "nmigen-boards",
         "minerva",
+
+        "migen",
+        "litex",
+        "litedram",
     ],
     entry_points={
         "console_scripts": [
