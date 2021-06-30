@@ -74,7 +74,7 @@ class SRAMSoC(CPUSoC, Elaboratable):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("platform", type=str,
-            help="target platform (e.g. 'nmigen_boards.arty_a7.ArtyA7Platform')")
+            help="target platform (e.g. 'nmigen_boards.arty_a7.ArtyA7_35Platform')")
     parser.add_argument("--baudrate", type=int,
             default=9600,
             help="UART baudrate (default: 9600)")
