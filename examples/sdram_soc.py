@@ -101,44 +101,48 @@ class SDRAMSoC(CPUSoC, Elaboratable):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--platform", type=str,
+            choices=("arty_a7", "ecpix5_85"),
+            help="target platform")
     parser.add_argument("--baudrate", type=int,
             default=9600,
             help="UART baudrate (default: 9600)")
     args = parser.parse_args()
 
-    # from nmigen_boards.arty_a7 import ArtyA7_35Platform
-    # platform = ArtyA7_35Platform()
-    # litedram_cfg = litedram.Artix7Config(
-    #     memtype          = "DDR3",
-    #     speedgrade       = "-1",
-    #     cmd_latency      = 0,
-    #     module_name      = "MT41K128M16",
-    #     module_bytes     = 2,
-    #     module_ranks     = 1,
-    #     rtt_nom          = 60,
-    #     rtt_wr           = 60,
-    #     ron              = 34,
-    #     input_clk_freq   = int(100e6),
-    #     user_clk_freq    = int(100e6),
-    #     iodelay_clk_freq = int(200e6),
-    # )
+    if args.platform == "arty_a7":
+        from nmigen_boards.arty_a7 import ArtyA7_35Platform
+        platform = ArtyA7_35Platform()
+        litedram_cfg = litedram.Artix7Config(
+            memtype          = "DDR3",
+            speedgrade       = "-1",
+            cmd_latency      = 0,
+            module_name      = "MT41K128M16",
+            module_bytes     = 2,
+            module_ranks     = 1,
+            rtt_nom          = 60,
+            rtt_wr           = 60,
+            ron              = 34,
+            input_clk_freq   = int(100e6),
+            user_clk_freq    = int(100e6),
+            iodelay_clk_freq = int(200e6),
+        )
+    elif args.platform == "ecpix5_85":
+        from nmigen_boards.ecpix5 import ECPIX585Platform
+        platform = ECPIX585Platform()
+        litedram_cfg = litedram.ECP5Config(
+            memtype        = "DDR3",
+            module_name    = "MT41K256M16",
+            module_bytes   = 2,
+            module_ranks   = 1,
+            input_clk_freq = int(100e6),
+            user_clk_freq  = int(70e6),
+            init_clk_freq  = int(25e6),
+        )
+    else:
+        assert False
 
-    from nmigen_boards.ecpix5 import ECPIX585Platform
-    platform = ECPIX585Platform()
-    litedram_cfg = litedram.ECP5Config(
-        memtype        = "DDR3",
-        module_name    = "MT41K256M16",
-        module_bytes   = 2,
-        module_ranks   = 1,
-        input_clk_freq = int(100e6),
-        user_clk_freq  = int(70e6),
-        init_clk_freq  = int(25e6),
-    )
-
-    litedram_core = litedram.Core(
-        litedram_cfg,
-        pins = litedram_cfg.request_pins(platform, "ddr3", 0),
-    )
+    litedram_pins = litedram_cfg.request_pins(platform, "ddr3", 0)
+    litedram_core = litedram.Core(litedram_cfg, pins=litedram_pins)
 
     litedram_builder  = litedram.Builder()
     litedram_products = litedram_core.build(litedram_builder, do_build=True)
