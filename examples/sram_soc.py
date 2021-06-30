@@ -73,13 +73,14 @@ class SRAMSoC(CPUSoC, Elaboratable):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
     parser.add_argument("platform", type=str,
             help="target platform (e.g. 'nmigen_boards.arty_a7.ArtyA7Platform')")
     parser.add_argument("--baudrate", type=int,
             default=9600,
             help="UART baudrate (default: 9600)")
-
+    parser.add_argument("--build-dir", type=str,
+            default="build",
+            help="local build directory (default: 'build')")
     args = parser.parse_args()
 
     def get_platform(platform_name):
@@ -101,5 +102,6 @@ if __name__ == "__main__":
          timer_addr=0x00006000, timer_width=32,
     )
 
-    soc.build(do_build=True, do_init=True)
-    platform.build(soc, do_program=True)
+    soc.build(build_dir=f"{args.build_dir}/soc", do_init=True)
+
+    platform.build(soc, build_dir=args.build_dir, do_program=True)

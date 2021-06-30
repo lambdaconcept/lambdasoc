@@ -107,6 +107,9 @@ if __name__ == "__main__":
     parser.add_argument("--baudrate", type=int,
             default=9600,
             help="UART baudrate (default: 9600)")
+    parser.add_argument("--build-dir", type=str,
+            default="build",
+            help="local build directory (default: 'build')")
     args = parser.parse_args()
 
     if args.platform == "arty_a7":
@@ -144,8 +147,9 @@ if __name__ == "__main__":
     litedram_pins = litedram_cfg.request_pins(platform, "ddr3", 0)
     litedram_core = litedram.Core(litedram_cfg, pins=litedram_pins)
 
-    litedram_builder  = litedram.Builder()
-    litedram_products = litedram_core.build(litedram_builder, do_build=True)
+    litedram_builder   = litedram.Builder()
+    litedram_build_dir = f"{args.build_dir}/litedram"
+    litedram_products  = litedram_core.build(litedram_builder, build_dir=litedram_build_dir)
 
     litedram_core_v = f"{litedram_core.name}/{litedram_core.name}.v"
     platform.add_file(litedram_core_v, litedram_products.get(litedram_core_v, mode="t"))
@@ -160,6 +164,7 @@ if __name__ == "__main__":
            ram_addr=0x30008000, ram_size=0x1000,
          sdram_addr=0x40000000, sdram_core=litedram_core, sdram_cache_size=8192,
     )
-    soc.build(do_build=True, do_init=True)
 
-    platform.build(soc, do_program=True)
+    soc.build(build_dir=f"{args.build_dir}/soc", litedram_dir=litedram_build_dir, do_init=True)
+
+    platform.build(soc, build_dir=args.build_dir, do_program=True)
