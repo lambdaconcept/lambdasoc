@@ -32,9 +32,9 @@ class SDRAMSoC(CPUSoC, Elaboratable):
 
         self.cpu = MinervaCPU(
             reset_address=reset_addr,
-            with_icache=True, icache_nlines=128, icache_nwords=4, icache_nways=1,
+            with_icache=True, icache_nlines=64, icache_nwords=4, icache_nways=1,
                               icache_base=sdram_addr, icache_limit=sdram_addr + sdram_core.size,
-            with_dcache=True, dcache_nlines=128, dcache_nwords=4, dcache_nways=1,
+            with_dcache=True, dcache_nlines=64, dcache_nwords=4, dcache_nways=1,
                               dcache_base=sdram_addr, dcache_limit=sdram_addr + sdram_core.size,
             with_muldiv=True,
         )
