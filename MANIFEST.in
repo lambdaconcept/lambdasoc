@@ -1,4 +1,4 @@
-graft lambdasoc/software/bios/3rdparty/llvm-project/compiler-rt/lib/builtins
+graft lambdasoc/software/bios/3rdparty/compiler-rt/lib/builtins
 graft lambdasoc/software/bios/3rdparty/litex/litex/soc/software/include
 include lambdasoc/software/bios/3rdparty/litex/litex/soc/cores/cpu/minerva/*.h
 graft lambdasoc/software/bios/3rdparty/litex/litex/soc/software/libbase
@@ -6,4 +6,6 @@ graft lambdasoc/software/bios/3rdparty/litex/litex/soc/software/liblitedram
 include lambdasoc/software/bios/Makefile
 graft lambdasoc/software/bios/src
 include lambdasoc/software/bios/toolchain.mk
+include lambdasoc/software/bios/compiler_rt.mk
+include lambdasoc/software/bios/litex.mk
 graft lambdasoc/software/bios/util
