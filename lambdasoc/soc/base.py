@@ -3,15 +3,21 @@ import re
 import textwrap
 import jinja2
 
+from collections import OrderedDict
+from collections.abc import Mapping
+
 from nmigen import tracer
-from nmigen_soc.memory import MemoryMap
+from nmigen.utils import log2_int
 from nmigen.build.run import *
+
+from nmigen_soc.memory import MemoryMap
+from nmigen_soc.periph import ConstantMap, ConstantBool, ConstantInt
 
 from .. import __version__, software
 from ..periph import Peripheral
 
 
-__all__ = ["socproperty", "SoC", "ConfigBuilder"]
+__all__ = ["socproperty", "ConstantAddr", "ConstantMapCollection", "SoC", "ConfigBuilder"]
 
 
 def socproperty(cls, *, weak=False, src_loc_at=0):
@@ -36,8 +42,73 @@ def socproperty(cls, *, weak=False, src_loc_at=0):
     return property(getter, setter)
 
 
+class ConstantAddr(ConstantInt):
+    def __init__(self, value, *, width=None):
+        return super().__init__(value, width=width, signed=False)
+
+    def __repr__(self):
+        return "ConstantAddr({}, width={})".format(self.value, self.width)
+
+
+class ConstantMapCollection(Mapping):
+    def __init__(self, **constant_maps):
+        self._storage = OrderedDict()
+        for key, value in constant_maps.items():
+            if value is None:
+                pass
+            elif not isinstance(value, (ConstantMap, ConstantMapCollection)):
+                raise TypeError("Constant map must be an instance of ConstantMap or "
+                                "ConstantMapCollection, not {!r}"
+                                .format(value))
+            self._storage[key] = value
+
+    def flatten(self, *, prefix="", separator="_"):
+        if not isinstance(prefix, str):
+            raise TypeError("Prefix must be a string, not {!r}".format(prefix))
+        if not isinstance(separator, str):
+            raise TypeError("Separator must be a string, not {!r}".format(separator))
+        for key, value in self.items():
+            if isinstance(value, ConstantMap):
+                for const_key, const_value in value.items():
+                    yield f"{prefix}{key}{separator}{const_key}", const_value
+            elif isinstance(value, ConstantMapCollection):
+                yield from value.flatten(prefix=f"{prefix}{key}{separator}", separator=separator)
+
+    def union(self, **other):
+        union = OrderedDict()
+        for key in self.keys() | other.keys():
+            self_value  = self .get(key, None)
+            other_value = other.get(key, None)
+            if self_value is None or other_value is None:
+                union[key] = self_value or other_value
+            elif isinstance(self_value, ConstantMap):
+                if not isinstance(other_value, ConstantMap):
+                    raise TypeError # TODO
+                union[key] = ConstantMap(**self_value, **other_value)
+            elif isinstance(self_value, ConstantMapCollection):
+                if not isinstance(other_value, ConstantMapCollection):
+                    raise TypeError # TODO
+                union[key] = self_value.merge(**{key: other_value})
+            else:
+                assert False
+        return ConstantMapCollection(**union)
+
+    def __getitem__(self, prefix):
+        return self._storage[prefix]
+
+    def __iter__(self):
+        yield from self._storage
+
+    def __len__(self):
+        return len(self._storage)
+
+    def __repr__(self):
+        return "ConstantMapCollection({})".format(list(self._storage.items()))
+
+
 class SoC:
     memory_map = socproperty(MemoryMap)
+    constants  = socproperty(ConstantMapCollection, weak=True)
 
     def build(self, build_dir="build/soc", do_build=True, name=None):
         plan = ConfigBuilder().prepare(self, build_dir, name)

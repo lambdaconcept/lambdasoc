@@ -1,4 +1,7 @@
 from nmigen import *
+
+from nmigen_soc.periph import ConstantMap
+
 from . import Peripheral, IRQLine
 
 
@@ -11,6 +14,12 @@ class InterruptController(Peripheral):
         super().__init__(*args, **kwargs)
         self.__irq_lines = set()
         self.__irq_map   = dict()
+
+    @property
+    def constant_map(self):
+        return ConstantMap(**{
+            line.name.upper(): index for index, line in self.iter_irqs()
+        })
 
     def add_irq(self, line, index):
         """Add an IRQ line.

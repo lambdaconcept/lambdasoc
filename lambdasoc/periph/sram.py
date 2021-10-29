@@ -3,6 +3,7 @@ from nmigen.utils import log2_int
 
 from nmigen_soc import wishbone
 from nmigen_soc.memory import MemoryMap
+from nmigen_soc.periph import ConstantMap
 
 from . import Peripheral
 
@@ -63,6 +64,12 @@ class SRAMPeripheral(Peripheral, Elaboratable):
     @init.setter
     def init(self, init):
         self._mem.init = init
+
+    @property
+    def constant_map(self):
+        return ConstantMap(
+            SIZE = self.size,
+        )
 
     def elaborate(self, platform):
         m = Module()

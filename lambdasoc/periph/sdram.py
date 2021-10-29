@@ -4,6 +4,7 @@ from nmigen.utils import log2_int
 
 from nmigen_soc import wishbone
 from nmigen_soc.memory import MemoryMap
+from nmigen_soc.periph import ConstantMap
 
 from . import Peripheral
 
@@ -299,6 +300,13 @@ class SDRAMPeripheral(Peripheral, Elaboratable):
 
         self._bridge = self.bridge(data_width=data_width, granularity=granularity)
         self.bus     = self._bridge.bus
+
+    @property
+    def constant_map(self):
+        return ConstantMap(
+            SIZE       = self.core.size,
+            CACHE_SIZE = self._cache.size,
+        )
 
     def elaborate(self, platform):
         m = Module()

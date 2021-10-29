@@ -1,6 +1,8 @@
 from nmigen import *
 from nmigen.lib.fifo import SyncFIFOBuffered
 
+from nmigen_soc.periph import ConstantMap
+
 from nmigen_stdio.serial import AsyncSerial
 
 from . import Peripheral
@@ -91,6 +93,13 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
         self._bridge    = self.bridge(data_width=32, granularity=8, alignment=2)
         self.bus        = self._bridge.bus
         self.irq        = self._bridge.irq
+
+    @property
+    def constant_map(self):
+        return ConstantMap(
+            RX_DEPTH = self._rx_fifo.depth,
+            TX_DEPTH = self._tx_fifo.depth,
+        )
 
     def elaborate(self, platform):
         m = Module()

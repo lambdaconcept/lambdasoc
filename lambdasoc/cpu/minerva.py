@@ -1,9 +1,12 @@
 from nmigen import *
 from nmigen_soc import wishbone
+from nmigen_soc.periph import ConstantMap
 
 from minerva.core import Minerva
 
 from . import CPU
+
+from ..soc.cpu import ConstantAddr
 
 
 __all__ = ["MinervaCPU"]
@@ -31,6 +34,16 @@ class MinervaCPU(CPU, Elaboratable):
     @property
     def muldiv(self):
         return "hard" if self._cpu.with_muldiv else "soft"
+
+    @property
+    def constant_map(self):
+        return ConstantMap(
+            MINERVA           = True,
+            RESET_ADDR        = ConstantAddr(self.reset_addr),
+            ARCH_RISCV        = True,
+            RISCV_MULDIV_SOFT = self.muldiv == "soft",
+            BYTEORDER_LITTLE  = True,
+        )
 
     def elaborate(self, platform):
         m = Module()
