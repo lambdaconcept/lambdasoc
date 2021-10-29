@@ -387,9 +387,6 @@ class Core(Elaboratable):
     name : str
         Optional. Name of the LiteDRAM core. If ``None`` (default) the name is inferred from the
         name of the variable this instance is assigned to.
-    name_force: bool
-        Force name. If ``True``, no exception will be raised in case of a name collision with a
-        previous LiteDRAM instance. Defaults to ``False``.
 
     Attributes
     ----------
@@ -399,13 +396,8 @@ class Core(Elaboratable):
         DRAM size, in bytes.
     user_port : :class:`NativePort`
         User port. Provides access to the DRAM storage.
-
-    Exceptions
-    ----------
-    Raises a :exn:`ValueError` if ``name`` collides with the name given to a previous LiteDRAM
-    instance and ``name_force`` is ``False``.
     """
-    def __init__(self, config, *, pins=None, name=None, name_force=False, src_loc_at=0):
+    def __init__(self, config, *, pins=None, name=None, src_loc_at=0):
         if not isinstance(config, Config):
             raise TypeError("Config must be an instance of litedram.Config, "
                             "not {!r}"
