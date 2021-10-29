@@ -6,6 +6,7 @@ from nmigen_soc.periph import ConstantMap
 from nmigen_stdio.serial import AsyncSerial
 
 from . import Peripheral
+from ..sim.blackboxes.serial.wrapper import AsyncSerial_Blackbox
 
 
 __all__ = ["AsyncSerialPeripheral"]
@@ -71,10 +72,13 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
     irq : :class:`IRQLine`
         Interrupt request line.
     """
-    def __init__(self, *, rx_depth=256, tx_depth=16, data_bits=8, **kwargs):
+    def __init__(self, *, core, rx_depth=256, tx_depth=16, **kwargs):
         super().__init__()
 
-        self._phy       = AsyncSerial(data_bits=data_bits, **kwargs)
+        if not isinstance(core, (AsyncSerial, AsyncSerial_Blackbox)):
+            raise TypeError("Core must be an instance of AsyncSerial or AsyncSerial_Blackbox, "
+                            "not {!r}".format(core))
+        self._phy       = core
         self._rx_fifo   = SyncFIFOBuffered(width=self._phy.rx.data.width, depth=rx_depth)
         self._tx_fifo   = SyncFIFOBuffered(width=self._phy.tx.data.width, depth=tx_depth)
 
