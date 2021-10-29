@@ -4,7 +4,7 @@ from nmigen_soc.periph import ConstantMap, ConstantBool, ConstantInt
 
 from .base import *
 from ..cpu import CPU
-from ..cores import litedram
+from ..cores import litedram, liteeth
 from ..periph.intc import InterruptController
 from ..periph.sram import SRAMPeripheral
 from ..periph.serial import AsyncSerialPeripheral
@@ -142,6 +142,9 @@ class BIOSBuilder(ConfigBuilder):
             {% if soc.sdram is not none %}
             litedram_dir={{build_dir}}/{{litedram_pkg}}/{{soc.sdram.core.name}}
             {% endif %}
+            {% if soc.ethmac is not none %}
+            liteeth_dir={{build_dir}}/{{liteeth_pkg}}/{{soc.ethmac.core.name}}
+            {% endif %}
             build={{bios_dir}}
             KCONFIG_CONFIG={{bios_dir}}/{{name}}.config
             make -C {{software_dir}}/bios 1>&2
@@ -158,6 +161,7 @@ class BIOSBuilder(ConfigBuilder):
             "cpp_format": cpp_format,
             "bios_dir": os.path.abspath(f"{build_dir}/{__name__}"),
             "litedram_pkg": litedram.__name__,
+            "liteeth_pkg": liteeth.__name__,
         })
 
         return super().prepare(soc, build_dir, name, **render_params)

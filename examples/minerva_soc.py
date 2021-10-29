@@ -19,12 +19,13 @@ from lambdasoc.periph.serial import AsyncSerialPeripheral
 from lambdasoc.periph.sram import SRAMPeripheral
 from lambdasoc.periph.timer import TimerPeripheral
 from lambdasoc.periph.sdram import SDRAMPeripheral
+from lambdasoc.periph.eth import EthernetMACPeripheral
 
 from lambdasoc.soc.cpu import CPUSoC, BIOSBuilder
 
 from lambdasoc.cores.pll.lattice_ecp5 import PLL_LatticeECP5
 from lambdasoc.cores.pll.xilinx_7series import PLL_Xilinx7Series
-from lambdasoc.cores import litedram
+from lambdasoc.cores import litedram, liteeth
 from lambdasoc.cores.utils import request_bare
 
 from lambdasoc.sim.blackboxes.serial import AsyncSerial_Blackbox
@@ -35,13 +36,14 @@ __all__ = ["MinervaSoC"]
 
 
 class _ClockResetGenerator(Elaboratable):
-    def __init__(self, *, sync_clk_freq, with_sdram):
+    def __init__(self, *, sync_clk_freq, with_sdram, with_ethernet):
         if not isinstance(sync_clk_freq, (int, float)) or sync_clk_freq <= 0:
             raise ValueError("Sync domain clock frequency must be a positive integer or float, "
                              "not {!r}"
                              .format(sync_clk_freq))
         self.sync_clk_freq = sync_clk_freq
         self.with_sdram    = bool(with_sdram)
+        self.with_ethernet = bool(with_ethernet)
 
     def elaborate(self, platform):
         m = Module()
@@ -54,6 +56,15 @@ class _ClockResetGenerator(Elaboratable):
         m.d.comb += ClockSignal("_ref").eq(platform.request(platform.default_clk, 0).i)
         if platform.default_rst is not None:
             m.d.comb += ResetSignal("_ref").eq(platform.request(platform.default_rst, 0).i)
+
+        # On the Arty A7, the DP83848 Ethernet PHY uses a 25 MHz reference clock.
+        if isinstance(platform, ArtyA7_35Platform) and self.with_ethernet:
+            m.domains += ClockDomain("_eth_ref", local=True)
+            m.submodules += Instance("BUFGCE",
+                i_I  = ClockSignal("_eth_ref"),
+                i_CE = ~ResetSignal("_eth_ref"),
+                o_O  = platform.request("eth_clk25", 0).o,
+            )
 
         # The LiteDRAM core provides its own PLL, which drives the litedram_user clock domain.
         # We reuse this clock domain as the sync domain, in order to avoid CDC between LiteDRAM
@@ -69,6 +80,24 @@ class _ClockResetGenerator(Elaboratable):
                 ClockSignal("sync").eq(ClockSignal("litedram_user")),
                 ResetSignal("sync").eq(ResetSignal("litedram_user")),
             ]
+
+            # On the Arty A7, we still use our own PLL to drive the Ethernet PHY reference clock.
+            if isinstance(platform, ArtyA7_35Platform) and self.with_ethernet:
+                eth_ref_pll_params = PLL_Xilinx7Series.Parameters(
+                    i_domain     = "_ref",
+                    i_freq       = platform.default_clk_frequency,
+                    i_reset_less = platform.default_rst is None,
+                    o_domain     = "_eth_ref",
+                    o_freq       = 25e6,
+                )
+                m.submodules.eth_ref_pll = eth_ref_pll = PLL_Xilinx7Series(eth_ref_pll_params)
+
+                if platform.default_rst is not None:
+                    eth_ref_pll_arst = ~eth_ref_pll.locked | ResetSignal("_ref")
+                else:
+                    eth_ref_pll_arst = ~eth_ref_pll.locked
+
+                m.submodules += ResetSynchronizer(eth_ref_pll_arst, domain="_eth_ref")
 
         # In simulation mode, the sync clock domain is directly driven by the platform clock.
         elif isinstance(platform, CXXRTLPlatform):
@@ -87,6 +116,8 @@ class _ClockResetGenerator(Elaboratable):
                     o_domain     = "sync",
                     o_freq       = self.sync_clk_freq,
                 )
+                if self.with_ethernet:
+                    sync_pll_params.add_secondary_output(domain="_eth_ref", freq=25e6)
                 m.submodules.sync_pll = sync_pll = PLL_Xilinx7Series(sync_pll_params)
             elif isinstance(platform, (ECPIX545Platform, ECPIX585Platform)):
                 sync_pll_params = PLL_LatticeECP5.Parameters(
@@ -106,6 +137,8 @@ class _ClockResetGenerator(Elaboratable):
                 sync_pll_arst = ~sync_pll.locked
 
             m.submodules += ResetSynchronizer(sync_pll_arst, domain="sync")
+            if isinstance(platform, ArtyA7_35Platform) and self.with_ethernet:
+                m.submodules += ResetSynchronizer(sync_pll_arst, domain="_eth_ref")
 
         return m
 
@@ -161,6 +194,7 @@ class MinervaSoC(CPUSoC, Elaboratable):
 
         self._sdram  = None
         self._sram   = None
+        self._ethmac = None
 
     @property
     def memory_map(self):
@@ -170,8 +204,10 @@ class MinervaSoC(CPUSoC, Elaboratable):
     def constants(self):
         return super().constants.union(
             SDRAM  = self.sdram .constant_map if self.sdram  is not None else None,
+            ETHMAC = self.ethmac.constant_map if self.ethmac is not None else None,
             SOC    = ConstantMap(
                 WITH_SDRAM        = self.sdram  is not None,
+                WITH_ETHMAC       = self.ethmac is not None,
                 MEMTEST_ADDR_SIZE = 8192,
                 MEMTEST_DATA_SIZE = 8192,
             ),
@@ -206,12 +242,25 @@ class MinervaSoC(CPUSoC, Elaboratable):
         self._sram = SRAMPeripheral(size=size)
         self._decoder.add(self._sram.bus, addr=addr)
 
+    @property
+    def ethmac(self):
+        return self._ethmac
+
+    def add_ethmac(self, core, *, addr, irqno, local_ip, remote_ip):
+        if self._ethmac is not None:
+            raise AttributeError("Ethernet MAC has already been set to {!r}"
+                                 .format(self._ethmac))
+        self._ethmac = EthernetMACPeripheral(core=core, local_ip=local_ip, remote_ip=remote_ip)
+        self._decoder.add(self._ethmac.bus, addr=addr)
+        self.intc.add_irq(self._ethmac.irq, index=irqno)
+
     def elaborate(self, platform):
         m = Module()
 
         m.submodules.crg = _ClockResetGenerator(
             sync_clk_freq = self.sync_clk_freq,
             with_sdram    = self.sdram is not None,
+            with_ethernet = self.ethmac is not None,
         )
 
         m.submodules.cpu        = self.cpu
@@ -227,6 +276,8 @@ class MinervaSoC(CPUSoC, Elaboratable):
             m.submodules.sdram = self.sdram
         if self.sram is not None:
             m.submodules.sram = self.sram
+        if self.ethmac is not None:
+            m.submodules.ethmac = self.ethmac
 
         m.d.comb += [
             self._arbiter.bus.connect(self._decoder.bus),
@@ -257,6 +308,14 @@ if __name__ == "__main__":
     parser.add_argument("--baudrate", type=int,
             default=9600,
             help="UART baudrate (default: 9600)")
+    parser.add_argument("--with-ethernet", action="store_true",
+            help="enable Ethernet")
+    parser.add_argument("--local-ip", type=str,
+            default="192.168.1.50",
+            help="Local IPv4 address (default: 192.168.1.50)")
+    parser.add_argument("--remote-ip", type=str,
+            default="192.168.1.100",
+            help="Remote IPv4 address (default: 192.168.1.100)")
     args = parser.parse_args()
 
     # Platform selection
@@ -326,6 +385,30 @@ if __name__ == "__main__":
         litedram_core = None
         mainram_size  = args.internal_sram_size
 
+    # LiteEth
+
+    if args.with_ethernet:
+        if isinstance(platform, CXXRTLPlatform):
+            raise NotImplementedError("Ethernet is currently unsupported in simulation.")
+        elif isinstance(platform, ArtyA7_35Platform):
+            liteeth_config = liteeth.Artix7Config(
+                phy_iface = "mii",
+                clk_freq  = int(25e6),
+            )
+        elif isinstance(platform, (ECPIX545Platform, ECPIX585Platform)):
+            liteeth_config = liteeth.ECP5Config(
+                phy_iface = "rgmii",
+                clk_freq  = int(125e6),
+            )
+        else:
+            assert False
+
+        liteeth_pins = request_bare(platform, f"eth_{liteeth_config.phy_iface}", 0)
+        liteeth_core = liteeth.Core(liteeth_config, pins=liteeth_pins)
+        liteeth_core.build(liteeth.Builder(), platform, args.build_dir)
+    else:
+        liteeth_core = None
+
     # UART
 
     if isinstance(platform, CXXRTLPlatform):
@@ -384,6 +467,10 @@ if __name__ == "__main__":
         soc.add_sdram(litedram_core, addr=0x40000000, cache_size=4096)
     else:
         soc.add_internal_sram(addr=0x40000000, size=args.internal_sram_size)
+
+    if args.with_ethernet:
+        soc.add_ethmac(liteeth_core, addr=0x90000000, irqno=2,
+                       local_ip=args.local_ip, remote_ip=args.remote_ip)
 
     soc.build(build_dir=args.build_dir, do_init=True)
 
