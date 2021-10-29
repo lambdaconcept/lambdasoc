@@ -131,7 +131,7 @@ class _ClockResetGenerator(Elaboratable):
             else:
                 assert False
 
-            if self.platform.default_rst is not None:
+            if platform.default_rst is not None:
                 sync_pll_arst = ~sync_pll.locked | ResetSignal("_ref")
             else:
                 sync_pll_arst = ~sync_pll.locked
