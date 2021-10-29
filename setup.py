@@ -24,6 +24,7 @@ setup(
     license="BSD",
     setup_requires=["setuptools_scm"],
     install_requires=[
+        "jinja2>=3.0",
         "nmigen>=0.1,<0.5",
         "nmigen-soc",
         "nmigen-stdio",

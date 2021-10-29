@@ -179,6 +179,8 @@ class ConfigBuilder:
                 "periph_size": periph_size,
                 "soc": soc,
                 "software_dir": os.path.dirname(software.__file__),
+                "constants": soc.constants,
+                "ConstantAddr": ConstantAddr,
                 **render_params,
             })
 

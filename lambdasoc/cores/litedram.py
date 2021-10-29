@@ -7,6 +7,7 @@ import textwrap
 
 from nmigen import *
 from nmigen import tracer
+from nmigen.build.plat import Platform
 from nmigen.build.run import BuildPlan, BuildProducts
 from nmigen.utils import log2_int
 
@@ -151,32 +152,6 @@ class Config(metaclass=ABCMeta):
         )
         assert module.memtype == self.memtype
         return module
-
-    def request_pins(self, platform, name, number):
-        """Request DRAM pins.
-
-        This helper requests the DRAM pins with `dir="-"` and `xdr=0`, because LiteDRAM already
-        provides its own I/O buffers.
-
-        Arguments
-        ---------
-        platform : :class:`nmigen.build.Platform`
-            Target platform.
-        name : str
-            DRAM resource name.
-        number : int
-            DRAM resource number.
-
-        Return value
-        ------------
-        A :class:`Record` providing raw access to DRAM pins.
-        """
-        res = platform.lookup(name, number)
-        return platform.request(
-            name, number,
-            dir={io.name: "-" for io in res.ios},
-            xdr={io.name: 0   for io in res.ios},
-        )
 
 
 class ECP5Config(Config):
@@ -485,18 +460,19 @@ class Core(Elaboratable):
         )
         self._ctrl_bus.memory_map = ctrl_map
 
-    def build(self, builder, *, do_build=True, build_dir="build/litedram", sim=False,
-            name_force=False):
+    def build(self, builder, platform, build_dir, *, do_build=True, sim=False, name_force=False):
         """Build the LiteDRAM core.
 
         Arguments
         ---------
         builder: :class:`litedram.Builder`
             Builder instance.
+        platform: :class:`nmigen.build.Platform`
+            Target platform.
+        build_dir : str
+            Root build directory.
         do_build : bool
             Execute the build locally. Defaults to ``True``.
-        build_dir : str
-            Root build directory. Defaults to ``"build/litedram"``.
         sim : bool
             Do the build in simulation mode (i.e. by replacing the PHY with a model). Defaults to
             ``False``.
@@ -511,13 +487,20 @@ class Core(Elaboratable):
         if not isinstance(builder, Builder):
             raise TypeError("Builder must be an instance of litedram.Builder, not {!r}"
                             .format(builder))
+        if not isinstance(platform, Platform):
+            raise TypeError("Platform must be an instance of nmigen.build.Platform, not {!r}"
+                            .format(platform))
 
         plan = builder.prepare(self, sim=sim, name_force=name_force)
         if not do_build:
             return plan
 
-        products = plan.execute_local(build_dir)
+        products = plan.execute_local(f"{build_dir}/{__package__}")
         self._populate_ctrl_map(products)
+
+        core_src = f"{self.name}/{self.name}.v"
+        platform.add_file(core_src, products.get(core_src, mode="t"))
+
         return products
 
     def elaborate(self, platform):
