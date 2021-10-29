@@ -73,13 +73,15 @@ class Config(metaclass=ABCMeta):
             cmd_buffer_depth = 16,
             csr_data_width   = 32):
 
-        if memtype == "DDR2":
+        if memtype == "SDR":
+            rate = "1:1"
+        elif memtype in {"DDR", "LPDDR", "DDR2"}:
             rate = "1:2"
         elif memtype in {"DDR3", "DDR4"}:
             rate = "1:4"
         else:
-            raise ValueError("Unsupported DRAM type, must be one of \"DDR2\", \"DDR3\" or "
-                             "\"DDR4\", not {!r}"
+            raise ValueError("Unsupported DRAM type, must be one of \"SDR\", \"DDR\", \"LPDDR\", "
+                             "\"DDR2\", \"DDR3\" or \"DDR4\", not {!r}"
                              .format(memtype))
 
         if not isinstance(module_name, str):
