@@ -42,15 +42,14 @@ class SRAMPeripheral(Peripheral, Elaboratable):
                              "of {} ({} / {})"
                               .format(size, data_width // granularity, data_width, granularity))
 
-        self._mem  = Memory(depth=(size * granularity) // data_width, width=data_width,
-                            name=self.name)
+        self._mem = Memory(depth=(size * granularity) // data_width, width=data_width)
 
         self.bus = wishbone.Interface(addr_width=log2_int(self._mem.depth),
                                       data_width=self._mem.width, granularity=granularity,
                                       features={"cti", "bte"})
 
-        map = MemoryMap(addr_width=log2_int(size), data_width=granularity)
-        map.add_resource(self._mem, size=size)
+        map = MemoryMap(addr_width=log2_int(size), data_width=granularity, name=self.name)
+        map.add_resource(self._mem, name="mem", size=size)
         self.bus.memory_map = map
 
         self.size        = size

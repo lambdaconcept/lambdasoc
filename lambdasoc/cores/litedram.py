@@ -426,7 +426,7 @@ class Core(Elaboratable):
             data_width = config.user_data_width,
         )
         user_map = MemoryMap(addr_width=user_addr_width, data_width=8)
-        user_map.add_resource("user_port_0", size=size)
+        user_map.add_resource(object(), name="user_port_0", size=size)
         self.user_port.memory_map = user_map
 
         self._ctrl_bus = None
@@ -470,7 +470,8 @@ class Core(Elaboratable):
             res_type, res_name, addr, size, attrs = row
             if res_type == "csr_register":
                 ctrl_map.add_resource(
-                    res_name,
+                    object(),
+                    name   = res_name,
                     addr   = int(addr, 16),
                     size   = int(size, 10) * self.config.csr_data_width // ctrl_map.data_width,
                     extend = True,

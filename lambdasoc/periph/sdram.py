@@ -269,34 +269,54 @@ class SDRAMPeripheral(Peripheral, Elaboratable):
                             .format(core))
         self.core = core
 
-        data_width  = core.ctrl_bus.data_width
-        granularity = core.ctrl_bus.granularity
+        data_width       = core.ctrl_bus.data_width
+        granularity      = core.ctrl_bus.granularity
+        granularity_bits = log2_int(data_width // granularity)
+
+        # Data path : bridge -> cache -> LiteDRAM user port
 
         self._data_bus = self.window(
             addr_width  = core.user_port.addr_width
                         + log2_int(core.user_port.data_width // 8)
-                        - log2_int(data_width // granularity),
+                        - granularity_bits,
             data_width  = data_width,
             granularity = granularity,
             features    = {"cti", "bte"},
         )
-        self._ctrl_bus = self.window(
-            addr_width  = core._ctrl_bus.addr_width,
-            data_width  = core._ctrl_bus.data_width,
-            granularity = core._ctrl_bus.granularity,
-            addr        = core.size,
+        data_map = MemoryMap(
+            addr_width = self._data_bus.addr_width + granularity_bits,
+            data_width = granularity,
+            alignment  = 0,
         )
 
-        self._cache    = WritebackCache(
+        self._cache = WritebackCache(
             core.user_port,
             size        = cache_size,
             data_width  = data_width,
             granularity = granularity,
             dirty_init  = cache_dirty_init,
         )
+        data_map.add_window(self._cache.intr_bus.memory_map)
 
-        self._ctrl_bus.memory_map.add_window(core.ctrl_bus.memory_map)
-        self._data_bus.memory_map.add_window(self._cache.intr_bus.memory_map)
+        self._data_bus.memory_map = data_map
+
+        # Control path : bridge -> LiteDRAM control port
+
+        self._ctrl_bus = self.window(
+            addr_width  = core._ctrl_bus.addr_width,
+            data_width  = data_width,
+            granularity = granularity,
+            addr        = core.size,
+        )
+        ctrl_map = MemoryMap(
+            addr_width = self._ctrl_bus.addr_width + granularity_bits,
+            data_width = granularity,
+            alignment  = 0,
+        )
+
+        ctrl_map.add_window(core.ctrl_bus.memory_map)
+
+        self._ctrl_bus.memory_map = ctrl_map
 
         self._bridge = self.bridge(data_width=data_width, granularity=granularity)
         self.bus     = self._bridge.bus

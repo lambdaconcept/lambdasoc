@@ -95,9 +95,9 @@ class InterruptSource(Elaboratable):
         self._events = list(events)
 
         width = len(events)
-        self.status  = csr.Element(width, "r",  name="{}_status".format(self.name))
-        self.pending = csr.Element(width, "rw", name="{}_pending".format(self.name))
-        self.enable  = csr.Element(width, "rw", name="{}_enable".format(self.name))
+        self.status  = csr.Element(width, "r",  name="status")
+        self.pending = csr.Element(width, "rw", name="pending")
+        self.enable  = csr.Element(width, "rw", name="enable")
 
         self.irq = IRQLine(name="{}_irq".format(self.name))
 
