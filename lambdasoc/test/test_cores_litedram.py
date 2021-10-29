@@ -55,8 +55,8 @@ class ConfigTestCase(unittest.TestCase):
 
     def test_wrong_memtype(self):
         with self.assertRaisesRegex(ValueError,
-                r"Unsupported DRAM type, must be one of \"DDR2\", \"DDR3\" or \"DDR4\", "
-                r"not 'foo'"):
+                r"Unsupported DRAM type, must be one of \"SDR\", \"DDR\", \"LPDDR\", \"DDR2\", "
+                r"\"DDR3\" or \"DDR4\", not 'foo'"):
             cfg = DummyConfig(
                 memtype        = "foo",
                 module_name    = "MT41K256M16",
@@ -423,12 +423,6 @@ class CoreTestCase(unittest.TestCase):
         self.assertEqual(core.user_port.data_width, 128)
         self.assertEqual(core.user_port.memory_map.addr_width, 29)
         self.assertEqual(core.user_port.memory_map.data_width, 8)
-
-    def test_name_force(self):
-        core_1 = litedram.Core(self._cfg, name="core")
-        core_2 = litedram.Core(self._cfg, name="core", name_force=True)
-        self.assertEqual(core_1.name, "core")
-        self.assertEqual(core_2.name, "core")
 
     def test_ctrl_bus_not_ready(self):
         core = litedram.Core(self._cfg)

@@ -4,6 +4,8 @@ from nmigen import *
 from nmigen.lib.io import pin_layout
 from nmigen.back.pysim import *
 
+from nmigen_stdio.serial import AsyncSerial
+
 from .utils.wishbone import *
 from ..periph.serial import AsyncSerialPeripheral
 
@@ -23,7 +25,9 @@ class AsyncSerialPeripheralTestCase(unittest.TestCase):
     def test_loopback(self):
         pins = Record([("rx", pin_layout(1, dir="i")),
                        ("tx", pin_layout(1, dir="o"))])
-        dut = AsyncSerialPeripheral(divisor=5, pins=pins)
+
+        core = AsyncSerial(divisor=5, pins=pins)
+        dut = AsyncSerialPeripheral(core=core)
         m = Module()
         m.submodules.serial = dut
         m.d.comb += pins.rx.i.eq(pins.tx.o)
