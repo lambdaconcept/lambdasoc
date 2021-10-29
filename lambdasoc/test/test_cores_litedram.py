@@ -3,6 +3,7 @@
 import unittest
 
 from nmigen_soc.memory import MemoryMap
+from nmigen_boards.ecpix5 import ECPIX585Platform
 
 from litedram.modules import SDRAMModule
 
@@ -458,27 +459,34 @@ class BuilderTestCase(unittest.TestCase):
     def test_prepare(self):
         core = litedram.Core(self._cfg)
         builder = litedram.Builder()
-        builder.prepare(core)
+        builder.prepare(core, ECPIX585Platform())
         self.assertEqual(list(builder.namespace), ["core"])
 
     def test_prepare_name_conflict(self):
         core = litedram.Core(self._cfg)
         builder = litedram.Builder()
-        builder.prepare(core)
+        builder.prepare(core, ECPIX585Platform())
         with self.assertRaisesRegex(ValueError,
                 r"LiteDRAM core name 'core' has already been used for a previous build\. Building "
                 r"this instance may overwrite previous build products\. Passing `name_force=True` "
                 r"will disable this check"):
-            builder.prepare(core)
+            builder.prepare(core, ECPIX585Platform())
 
     def test_prepare_name_force(self):
         core = litedram.Core(self._cfg)
         builder = litedram.Builder()
-        builder.prepare(core)
-        builder.prepare(core, name_force=True)
+        builder.prepare(core, ECPIX585Platform())
+        builder.prepare(core, ECPIX585Platform(), name_force=True)
 
     def test_prepare_wrong_core(self):
         builder = litedram.Builder()
         with self.assertRaisesRegex(TypeError,
                 r"LiteDRAM core must be an instance of litedram.Core, not 'foo'"):
-            builder.prepare("foo")
+            builder.prepare("foo", ECPIX585Platform())
+
+    def test_prepare_wrong_platform(self):
+        core = litedram.Core(self._cfg)
+        builder = litedram.Builder()
+        with self.assertRaisesRegex(TypeError,
+                r"Target platform must be an instance of nmigen.build.plat.Platform, not 'foo'"):
+            builder.prepare(core, "foo")
