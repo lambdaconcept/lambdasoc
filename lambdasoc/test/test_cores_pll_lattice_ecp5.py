@@ -1,7 +1,7 @@
-# nmigen: UnusedElaboratable=no
+# amaranth: UnusedElaboratable=no
 
 import unittest
-from nmigen import *
+from amaranth import *
 
 from ..cores.pll.lattice_ecp5 import PLL_LatticeECP5
 

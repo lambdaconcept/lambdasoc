@@ -1,7 +1,7 @@
-# nmigen: UnusedElaboratable=no
+# amaranth: UnusedElaboratable=no
 
 import unittest
-from nmigen import *
+from amaranth import *
 
 from ..cores.pll.xilinx_7series import PLL_Xilinx7Series
 

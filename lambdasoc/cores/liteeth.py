@@ -4,15 +4,15 @@ import jinja2
 import textwrap
 import re
 
-from nmigen import *
-from nmigen import tracer
-from nmigen.utils import log2_int
-from nmigen.hdl.rec import Layout
-from nmigen.build.plat import Platform
-from nmigen.build.run import BuildPlan, BuildProducts
+from amaranth import *
+from amaranth import tracer
+from amaranth.utils import log2_int
+from amaranth.hdl.rec import Layout
+from amaranth.build.plat import Platform
+from amaranth.build.run import BuildPlan, BuildProducts
 
-from nmigen_soc import wishbone
-from nmigen_soc.memory import MemoryMap
+from amaranth_soc import wishbone
+from amaranth_soc.memory import MemoryMap
 
 from .. import __version__
 from ..periph import IRQLine

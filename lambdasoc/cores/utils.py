@@ -6,7 +6,7 @@ def request_bare(platform, name, number):
 
         Arguments
         ---------
-        platform : :class:`nmigen.build.plat.Platform`
+        platform : :class:`amaranth.build.plat.Platform`
             Target platform.
         name : str
             Resource name.

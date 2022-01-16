@@ -1,6 +1,6 @@
 import os
 
-from nmigen_soc.periph import ConstantMap, ConstantBool, ConstantInt
+from amaranth_soc.periph import ConstantMap, ConstantBool, ConstantInt
 
 from .base import *
 from ..cpu import CPU

@@ -1,6 +1,6 @@
-from nmigen import *
-from nmigen_soc import wishbone
-from nmigen_soc.periph import ConstantMap
+from amaranth import *
+from amaranth_soc import wishbone
+from amaranth_soc.periph import ConstantMap
 
 from minerva.core import Minerva
 

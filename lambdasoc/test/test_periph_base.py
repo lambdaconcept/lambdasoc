@@ -1,10 +1,10 @@
-# nmigen: UnusedElaboratable=no
+# amaranth: UnusedElaboratable=no
 
 import unittest
-from nmigen import *
-from nmigen.back.pysim import *
+from amaranth import *
+from amaranth.back.pysim import *
 
-from nmigen_soc.memory import MemoryMap
+from amaranth_soc.memory import MemoryMap
 
 from .utils.wishbone import *
 from ..periph.base import Peripheral, CSRBank, PeripheralBridge

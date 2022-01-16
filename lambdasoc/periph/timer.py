@@ -1,6 +1,6 @@
-from nmigen import *
+from amaranth import *
 
-from nmigen_soc.periph import ConstantMap
+from amaranth_soc.periph import ConstantMap
 
 from . import Peripheral
 
@@ -34,7 +34,7 @@ class TimerPeripheral(Peripheral, Elaboratable):
 
     Attributes
     ----------
-    bus : :class:`nmigen_soc.wishbone.Interface`
+    bus : :class:`amaranth_soc.wishbone.Interface`
         Wishbone bus interface.
     irq : :class:`IRQLine`
         Interrupt request.

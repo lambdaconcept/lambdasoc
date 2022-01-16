@@ -1,6 +1,6 @@
-from nmigen import *
+from amaranth import *
 
-from nmigen_soc.periph import ConstantMap
+from amaranth_soc.periph import ConstantMap
 
 from . import Peripheral, IRQLine
 

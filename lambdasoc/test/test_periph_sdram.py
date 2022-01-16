@@ -1,13 +1,13 @@
-# nmigen: UnusedElaboratable=no
+# amaranth: UnusedElaboratable=no
 
 import unittest
 
-from nmigen import *
-from nmigen.test.utils import *
-from nmigen.asserts import *
-from nmigen.utils import log2_int
+from amaranth import *
+from amaranth.test.utils import *
+from amaranth.asserts import *
+from amaranth.utils import log2_int
 
-from nmigen_soc import wishbone
+from amaranth_soc import wishbone
 
 from ..periph.sdram import *
 from ..cores import litedram

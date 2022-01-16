@@ -1,9 +1,9 @@
-# nmigen: UnusedElaboratable=no
+# amaranth: UnusedElaboratable=no
 
 import unittest
 
-from nmigen_soc.memory import MemoryMap
-from nmigen_boards.ecpix5 import ECPIX585Platform
+from amaranth_soc.memory import MemoryMap
+from amaranth_boards.ecpix5 import ECPIX585Platform
 
 from litedram.modules import SDRAMModule
 
@@ -488,5 +488,5 @@ class BuilderTestCase(unittest.TestCase):
         core = litedram.Core(self._cfg)
         builder = litedram.Builder()
         with self.assertRaisesRegex(TypeError,
-                r"Target platform must be an instance of nmigen.build.plat.Platform, not 'foo'"):
+                r"Target platform must be an instance of amaranth.build.plat.Platform, not 'foo'"):
             builder.prepare(core, "foo")
