@@ -54,14 +54,8 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
         Depth of the receiver FIFO.
     tx_depth : int
         Depth of the transmitter FIFO.
-    divisor : int
-        Clock divisor reset value. Should be set to ``int(clk_frequency // baudrate)``.
-    divisor_bits : int
-        Optional. Clock divisor width. If omitted, ``bits_for(divisor)`` is used instead.
-    data_bits : int
-        Data width.
-    parity : ``"none"``, ``"mark"``, ``"space"``, ``"even"``, ``"odd"``
-        Parity mode.
+    core : :class:`AsyncSerial` or :class:`AsyncSerial_Blackbox`
+        PHY to use
     pins : :class:`Record`
         Optional. UART pins. See :class:`amaranth_boards.resources.UARTResource`.
 
@@ -73,7 +67,7 @@ class AsyncSerialPeripheral(Peripheral, Elaboratable):
         Interrupt request line.
     """
     def __init__(self, *, core, rx_depth=256, tx_depth=16, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
 
         if not isinstance(core, (AsyncSerial, AsyncSerial_Blackbox)):
             raise TypeError("Core must be an instance of AsyncSerial or AsyncSerial_Blackbox, "
