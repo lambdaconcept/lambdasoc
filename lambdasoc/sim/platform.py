@@ -3,8 +3,8 @@ import sys
 from collections import OrderedDict
 from importlib import import_module, resources
 
-from nmigen import *
-from nmigen.build import *
+from amaranth import *
+from amaranth.build import *
 
 
 __all__ = ["CXXRTLPlatform"]

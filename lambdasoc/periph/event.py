@@ -1,7 +1,7 @@
-from nmigen import *
-from nmigen import tracer
+from amaranth import *
+from amaranth import tracer
 
-from nmigen_soc import csr
+from amaranth_soc import csr
 
 
 __all__ = ["EventSource", "IRQLine", "InterruptSource"]

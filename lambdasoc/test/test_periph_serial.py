@@ -1,10 +1,10 @@
 import unittest
 
-from nmigen import *
-from nmigen.lib.io import pin_layout
-from nmigen.back.pysim import *
+from amaranth import *
+from amaranth.lib.io import pin_layout
+from amaranth.back.pysim import *
 
-from nmigen_stdio.serial import AsyncSerial
+from amaranth_stdio.serial import AsyncSerial
 
 from .utils.wishbone import *
 from ..periph.serial import AsyncSerialPeripheral

@@ -1,6 +1,6 @@
 from collections import namedtuple, OrderedDict
 
-from nmigen import *
+from amaranth import *
 
 
 __all__ = ["PLL_LatticeECP5"]

@@ -1,17 +1,17 @@
 import argparse
 from collections import OrderedDict
 
-from nmigen import *
-from nmigen.lib.cdc import ResetSynchronizer
-from nmigen.build import *
+from amaranth import *
+from amaranth.lib.cdc import ResetSynchronizer
+from amaranth.build import *
 
-from nmigen_soc import wishbone
-from nmigen_soc.periph import ConstantMap
+from amaranth_soc import wishbone
+from amaranth_soc.periph import ConstantMap
 
-from nmigen_stdio.serial import AsyncSerial
+from amaranth_stdio.serial import AsyncSerial
 
-from nmigen_boards.arty_a7 import ArtyA7_35Platform
-from nmigen_boards.ecpix5 import ECPIX545Platform, ECPIX585Platform
+from amaranth_boards.arty_a7 import ArtyA7_35Platform
+from amaranth_boards.ecpix5 import ECPIX545Platform, ECPIX585Platform
 
 from lambdasoc.cpu.minerva import MinervaCPU
 from lambdasoc.periph.intc import GenericInterruptController

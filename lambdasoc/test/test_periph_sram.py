@@ -1,12 +1,12 @@
-#nmigen: UnusedElaboratable=no
+#amaranth: UnusedElaboratable=no
 
 import unittest
 
-from nmigen import *
-from nmigen.utils import log2_int
-from nmigen.back.pysim import *
+from amaranth import *
+from amaranth.utils import log2_int
+from amaranth.back.pysim import *
 
-from nmigen_soc.wishbone import CycleType, BurstTypeExt
+from amaranth_soc.wishbone import CycleType, BurstTypeExt
 
 from .utils.wishbone import *
 from ..periph.sram import SRAMPeripheral

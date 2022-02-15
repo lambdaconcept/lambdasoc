@@ -1,10 +1,10 @@
 from ipaddress import IPv4Address
 
-from nmigen import *
+from amaranth import *
 
-from nmigen_soc import wishbone
-from nmigen_soc.memory import MemoryMap
-from nmigen_soc.periph import ConstantMap
+from amaranth_soc import wishbone
+from amaranth_soc.memory import MemoryMap
+from amaranth_soc.periph import ConstantMap
 
 from . import Peripheral
 from .event import IRQLine

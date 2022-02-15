@@ -5,14 +5,14 @@ import os
 import re
 import textwrap
 
-from nmigen import *
-from nmigen import tracer
-from nmigen.build.plat import Platform
-from nmigen.build.run import BuildPlan, BuildProducts
-from nmigen.utils import log2_int
+from amaranth import *
+from amaranth import tracer
+from amaranth.build.plat import Platform
+from amaranth.build.run import BuildPlan, BuildProducts
+from amaranth.utils import log2_int
 
-from nmigen_soc import wishbone
-from nmigen_soc.memory import MemoryMap
+from amaranth_soc import wishbone
+from amaranth_soc.memory import MemoryMap
 
 from .. import __version__
 
@@ -320,7 +320,7 @@ class NativePort(Record):
 
         Return value
         ------------
-        An instance of :class:`nmigen_soc.memory.MemoryMap`.
+        An instance of :class:`amaranth_soc.memory.MemoryMap`.
 
         Exceptions
         ----------
@@ -351,14 +351,14 @@ class NativePort(Record):
 
 
 class Core(Elaboratable):
-    """An nMigen wrapper for a standalone LiteDRAM core.
+    """An Amaranth wrapper for a standalone LiteDRAM core.
 
     Parameters
     ----------
     config : :class:`Config`
         LiteDRAM configuration.
-    pins : :class:`nmigen.lib.io.Pin`
-        Optional. DRAM pins. See :class:`nmigen_boards.resources.DDR3Resource` for layout.
+    pins : :class:`amaranth.lib.io.Pin`
+        Optional. DRAM pins. See :class:`amaranth_boards.resources.DDR3Resource` for layout.
     name : str
         Optional. Name of the LiteDRAM core. If ``None`` (default) the name is inferred from the
         name of the variable this instance is assigned to.
@@ -418,7 +418,7 @@ class Core(Elaboratable):
 
         Return value
         ------------
-        An instance of :class:`nmigen_soc.wishbone.Interface`.
+        An instance of :class:`amaranth_soc.wishbone.Interface`.
 
         Exceptions
         ----------
@@ -467,7 +467,7 @@ class Core(Elaboratable):
         ---------
         builder: :class:`litedram.Builder`
             Builder instance.
-        platform: :class:`nmigen.build.Platform`
+        platform: :class:`amaranth.build.Platform`
             Target platform.
         build_dir : str
             Root build directory.
@@ -481,14 +481,14 @@ class Core(Elaboratable):
 
         Return value
         ------------
-        An instance of :class:`nmigen.build.run.LocalBuildProducts` if ``do_build`` is ``True``.
-        Otherwise, an instance of :class:``nmigen.build.run.BuildPlan``.
+        An instance of :class:`amaranth.build.run.LocalBuildProducts` if ``do_build`` is ``True``.
+        Otherwise, an instance of :class:``amaranth.build.run.BuildPlan``.
         """
         if not isinstance(builder, Builder):
             raise TypeError("Builder must be an instance of litedram.Builder, not {!r}"
                             .format(builder))
         if not isinstance(platform, Platform):
-            raise TypeError("Platform must be an instance of nmigen.build.Platform, not {!r}"
+            raise TypeError("Platform must be an instance of amaranth.build.Platform, not {!r}"
                             .format(platform))
 
         plan = builder.prepare(self, platform, sim=sim, name_force=name_force)
@@ -696,7 +696,7 @@ class Builder:
         ---------
         core : :class:`litedram.Core`
             The LiteDRAM instance to be built.
-        platform : :class:`nmigen.build.plat.Platform`
+        platform : :class:`amaranth.build.plat.Platform`
             Target platform.
         sim : bool
             Do the build in simulation mode (i.e. by replacing the PHY with a model).
@@ -706,7 +706,7 @@ class Builder:
 
         Return value
         ------------
-        A :class:`nmigen.build.run.BuildPlan` for this LiteDRAM instance.
+        A :class:`amaranth.build.run.BuildPlan` for this LiteDRAM instance.
 
         Exceptions
         ----------
@@ -717,7 +717,7 @@ class Builder:
             raise TypeError("LiteDRAM core must be an instance of litedram.Core, not {!r}"
                             .format(core))
         if not isinstance(platform, Platform):
-            raise TypeError("Target platform must be an instance of nmigen.build.plat.Platform, "
+            raise TypeError("Target platform must be an instance of amaranth.build.plat.Platform, "
                             "not {!r}"
                             .format(platform))
 

@@ -1,7 +1,7 @@
-from nmigen import *
-from nmigen.asserts import *
+from amaranth import *
+from amaranth.asserts import *
 
-from nmigen_soc import wishbone
+from amaranth_soc import wishbone
 
 
 __all__ = ["wb_read", "wb_write", "WishboneSubordinateSpec"]

@@ -5,9 +5,9 @@ import textwrap
 import traceback
 import unittest
 
-from nmigen.hdl.ast import *
-from nmigen.hdl.ir import *
-from nmigen.back import rtlil
+from amaranth.hdl.ast import *
+from amaranth.hdl.ir import *
+from amaranth.back import rtlil
 from .toolchain import require_tool
 
 
@@ -30,7 +30,7 @@ class FormalTestCase(unittest.TestCase):
 
         if mode == "hybrid":
             # A mix of BMC and k-induction.
-            script = "setattr -unset init w:* a:nmigen.sample_reg %d"
+            script = "setattr -unset init w:* a:amaranth.sample_reg %d"
             mode   = "bmc"
         else:
             script = ""

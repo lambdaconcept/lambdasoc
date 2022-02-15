@@ -6,12 +6,12 @@ import jinja2
 from collections import OrderedDict
 from collections.abc import Mapping
 
-from nmigen import tracer
-from nmigen.utils import log2_int
-from nmigen.build.run import *
+from amaranth import tracer
+from amaranth.utils import log2_int
+from amaranth.build.run import *
 
-from nmigen_soc.memory import MemoryMap
-from nmigen_soc.periph import ConstantMap, ConstantBool, ConstantInt
+from amaranth_soc.memory import MemoryMap
+from amaranth_soc.periph import ConstantMap, ConstantBool, ConstantInt
 
 from .. import __version__, software
 from ..periph import Peripheral
