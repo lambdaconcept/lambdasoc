@@ -31,9 +31,9 @@ setup(
         "amaranth-boards",
         "minerva",
 
-        "migen",
-        "litex",
-        "litedram",
+        #"migen",
+        #"litex",
+        #"litedram",
     ],
     entry_points={
         "console_scripts": [
