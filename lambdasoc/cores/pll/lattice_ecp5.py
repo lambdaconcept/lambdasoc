@@ -3,7 +3,10 @@ from collections import namedtuple, OrderedDict
 from amaranth import *
 
 
-__all__ = ["PLL_LatticeECP5"]
+__all__ = [
+    "PLL_LatticeECP5",
+    "DELAY_LatticeECP5",
+]
 
 
 class PLL_LatticeECP5(Elaboratable):
@@ -358,3 +361,68 @@ class PLL_LatticeECP5(Elaboratable):
             })
 
         return Instance("EHXPLLL", **pll_kwargs)
+
+
+# Copyright (c) 2018-2021 Florent Kermarrec <florent@enjoy-digital.fr>
+# https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/clock/lattice_ecp5.py
+class DELAY_LatticeECP5(Elaboratable):
+    ntaps = 128
+    tap_delay = 25e-12
+
+    def __init__(self, i=None, o=None, taps=None):
+        self.i = Signal() if i is None else i
+        self.o = Signal() if o is None else o
+        self.taps = Signal(range(self.ntaps)) if taps is None else taps
+        self.locked = Signal()
+
+    def elaborate(self, platform):
+        m = Module()
+
+        rst = Signal()
+        move = Signal()
+        done = Signal()
+        change = Signal()
+        curr_taps = Signal(range(self.ntaps))
+
+        # DELAYF Instance.
+        m.submodules += Instance("DELAYF",
+            p_DEL_MODE  = "USER_DEFINED",
+            p_DEL_VALUE = self.taps.reset,
+            i_A         = self.i,
+            o_Z         = self.o,
+            i_LOADN     = ~(ResetSignal("sync") | rst),
+            i_MOVE      = move,
+            i_DIRECTION = 0,
+            o_CFLAG     = Signal()
+        )
+
+        # FSM.
+        m.d.comb += [
+            self.locked.eq(done),
+            done.eq(self.taps == curr_taps),
+            change.eq(self.taps != curr_taps),
+        ]
+
+        with m.FSM() as fsm:
+            with m.State("IDLE"):
+                with m.If(change):
+                    m.next = "DELAYF-RST"
+
+            with m.State("DELAYF-RST"):
+                m.d.comb += rst.eq(1)
+                m.d.sync += [
+                    move.eq(0),
+                    curr_taps.eq(0),
+                ]
+                m.next = "DELAYF-MOVE"
+
+            with m.State("DELAYF-MOVE"):
+                with m.If(done):
+                    m.d.sync += move.eq(0)
+                    m.next = "IDLE"
+                with m.Else():
+                    m.d.sync += move.eq(~move)
+                    with m.If(move):
+                        m.d.sync += curr_taps.eq(curr_taps + 1)
+
+        return m
