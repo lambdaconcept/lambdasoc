@@ -25,6 +25,9 @@ class CPUSoC(SoC):
     # TODO: implement a CRG peripheral and expose clock frequencies through CSRs.
     sync_clk_freq = socproperty(int)
 
+    sdram  = None
+    ethmac = None
+
     @property
     def constants(self):
         return ConstantMapCollection(
