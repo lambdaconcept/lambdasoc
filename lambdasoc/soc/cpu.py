@@ -43,6 +43,12 @@ class CPUSoC(SoC):
             ),
         )
 
+    def read_bin(self, filename):
+        with open(filename, "rb") as f:
+            words = iter(lambda: f.read(self.cpu.data_width // 8), b'')
+            data  = [int.from_bytes(w, self.cpu.byteorder) for w in words]
+            return data
+
     def build(self, build_dir, name=None, do_build=True, do_init=False):
         """TODO
         """
@@ -55,9 +61,8 @@ class CPUSoC(SoC):
             return products
 
         with products.extract(f"{__name__}/bios/bios.bin") as bios_filename:
-            with open(bios_filename, "rb") as f:
-                words = iter(lambda: f.read(self.cpu.data_width // 8), b'')
-                bios  = [int.from_bytes(w, self.cpu.byteorder) for w in words]
+            bios = self.read_bin(bios_filename)
+
         self.bootrom.init = bios
 
 
