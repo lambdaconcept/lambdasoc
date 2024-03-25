@@ -25,7 +25,7 @@ setup(
     setup_requires=["setuptools_scm"],
     install_requires=[
         "jinja2>=3.0",
-        "amaranth>=0.3",
+        "amaranth>=0.4",
         "amaranth-soc",
         "amaranth-stdio",
         "amaranth-boards",
