@@ -45,7 +45,7 @@ class EventSource:
 
 class IRQLine(Signal):
     """Interrupt request line."""
-    def __init__(self, *, name=None, src_loc_at=0):
+    def __init__(self, shape=None, *, name=None, src_loc_at=0):
         super().__init__(name=name, src_loc_at=1 + src_loc_at)
 
     __hash__ = object.__hash__
